@@ -1,22 +1,30 @@
-package demotest;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Proxy;
-import java.lang.reflect.InvocationHandler;
+import net.sf.cglib.proxy.Enhancer;
+import net.sf.cglib.proxy.MethodInterceptor;
+import net.sf.cglib.proxy.MethodProxy;
+
 import java.lang.reflect.Method;
 
-//继承InvocationHandler接口，实现调用处理器
-public class testHandler implements InvocationHandler{
-    private Object target;
+//代理类
+public class testHandler implements MethodInterceptor {//继承MethodInterceptor接口
+    private Object target;//维护一个目标对象
     public testHandler(Object target){
-        this.target = target;
+        this.target = target;               //传入委托类实例对象
     }
-
-    //实现java.lang.reflect.InvocationHandler.invoke()方法
-    public Object invoke(Object proxy,Method method,Object[] args) throws Throwable{
-        //添加自定义的委托逻辑
+    //为目标对象生成代理对象
+    public Object getProxyInstance(){       //该方法用于生成代理对象
+        //实例化字节码增强器
+        Enhancer en = new Enhancer();
+        // 指定Enhancer 对象的父类（委托类）
+        en.setSuperclass(target.getClass());
+        // 指定Enhancer 对象的回调方法
+        en.setCallback(this);
+        // 生成代理对象
+        return en.create();
+    }
+    public Object intercept(Object o , Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
         System.out.println("test DynamicProxy");
-        //调用委托类的方法
-        Object result = method. invoke(target,args);
-        return result;
+        Object object = methodProxy.invokeSuper(o,objects);
+        return object;
     }
 }
+
